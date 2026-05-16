@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-  <title>Hello.</title>
+  <title>Ammaar Hayat</title>
 
   <style>
 
@@ -17,7 +17,7 @@
     body{
       height:100vh;
       overflow:hidden;
-      background:#050505;
+      background:#000000;
       color:white;
       font-family:Inter, Arial, sans-serif;
       position:relative;
@@ -39,19 +39,14 @@
       height:700px;
       border-radius:50%;
       filter:blur(140px);
-      opacity:0.75;
+      opacity:0.65;
     }
 
-    .blob1{
-      background:#000000;
-      top:-250px;
-      left:-180px;
-    }
-
-    .blob2{
-      background:rgb(0, 0, 0);
-      bottom:-250px;
-      right:-180px;
+    .noise{
+      position:absolute;
+      inset:0;
+      opacity:0.03;
+      background-image:url("https://grainy-gradients.vercel.app/noise.svg");
     }
 
     nav{
@@ -71,26 +66,79 @@
       font-size:32px;
       font-weight:700;
       letter-spacing:-1px;
+      text-decoration:none;
+      color:white;
     }
 
     .dot{
       color:#7a5cff;
     }
 
-    .links{
-      display:flex;
-      gap:40px;
+    .menu{
+      position:relative;
     }
 
-    .links a{
-      color:#cfcfcf;
-      text-decoration:none;
-      transition:0.3s;
-      font-size:15px;
-    }
+    .menu-button{
+      width:46px;
+      height:46px;
 
-    .links a:hover{
+      border:none;
+      border-radius:14px;
+
+      background:rgba(255,255,255,0.08);
+      backdrop-filter:blur(10px);
+
       color:white;
+      cursor:pointer;
+
+      font-size:20px;
+
+      transition:0.3s;
+    }
+
+    .menu-button:hover{
+      background:rgba(255,255,255,0.14);
+    }
+
+    .dropdown{
+      position:absolute;
+      top:60px;
+      right:0;
+
+      width:260px;
+
+      background:rgba(15,15,15,0.96);
+      backdrop-filter:blur(20px);
+
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:18px;
+
+      padding:10px;
+
+      display:none;
+
+      box-shadow:0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    .dropdown a{
+      display:block;
+
+      padding:14px 16px;
+
+      color:white;
+      text-decoration:none;
+
+      border-radius:12px;
+
+      transition:0.25s;
+    }
+
+    .dropdown a:hover{
+      background:rgba(255,255,255,0.08);
+    }
+
+    .dropdown.show{
+      display:block;
     }
 
     .hero{
@@ -173,10 +221,6 @@
 
     @media(max-width:768px){
 
-      .links{
-        gap:20px;
-      }
-
       h1{
         font-size:5rem;
       }
@@ -203,8 +247,24 @@
 
   <nav>
 
-    <div class="logo">
+    <a href="index.html" class="logo">
       AH<span class="dot">.</span>
+    </a>
+
+    <div class="menu">
+
+      <button class="menu-button" id="menuButton">
+        ☰
+      </button>
+
+      <div class="dropdown" id="dropdown">
+
+        <a href="reformgen.html">
+          Reform UK Meme Generator
+        </a>
+
+      </div>
+
     </div>
 
   </nav>
@@ -224,13 +284,48 @@
   </section>
 
   <div class="socials">
-    <a href="https://www.youtube.com/@ammaarh">Youtube</a>
-    <a href="https://www.instagram.com/ammaarhayat/">Instagram</a>
+
+    <a 
+      href="https://www.youtube.com/@ammaarh" 
+      target="_blank"
+    >
+      YouTube
+    </a>
+
+    <a 
+      href="https://www.instagram.com/ammaarhayat/" 
+      target="_blank"
+    >
+      Instagram
+    </a>
+
   </div>
 
   <div class="footer">
     © 2026 Ammaar Hayat
   </div>
+
+  <script>
+
+    const menuButton = document.getElementById("menuButton");
+    const dropdown = document.getElementById("dropdown");
+
+    menuButton.addEventListener("click", () => {
+      dropdown.classList.toggle("show");
+    });
+
+    window.addEventListener("click", (e) => {
+
+      if(
+        !menuButton.contains(e.target) &&
+        !dropdown.contains(e.target)
+      ){
+        dropdown.classList.remove("show");
+      }
+
+    });
+
+  </script>
 
 </body>
 </html>

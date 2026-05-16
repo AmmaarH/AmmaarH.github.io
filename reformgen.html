@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>Reform UK Meme Generator</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+
+  <style>
+
+        .example-image{
+        margin-top:24px;
+        }
+
+        .example-image img{
+        width:100%;
+        border-radius:18px;
+        border:1px solid rgba(255,255,255,0.08);
+        display:block;
+        }
+
+
+
+    @font-face{
+      font-family:'GothamBlack';
+      src:url('fonts/Gotham-Black.otf');
+    }
+
+    @font-face{
+      font-family:'GothamBook';
+      src:url('fonts/Gotham-Book.otf');
+    }
+
+    @font-face{
+      font-family:'NothingYouCouldDo';
+      src:url('fonts/NothingYouCouldDo-Regular.ttf');
+    }
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    body{
+      background:#000;
+      color:white;
+      font-family:Inter, Arial, sans-serif;
+      min-height:100vh;
+      padding:40px;
+    }
+
+    .container{
+      max-width:1400px;
+      margin:auto;
+
+      display:grid;
+      grid-template-columns:350px 1fr;
+      gap:30px;
+    }
+
+    .panel{
+      background:#050505;
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:24px;
+      padding:24px;
+      height:fit-content;
+    }
+
+    .panel h2{
+      margin-bottom:24px;
+      font-size:28px;
+    }
+
+    .group{
+      margin-bottom:20px;
+    }
+
+    .group label{
+      display:block;
+      margin-bottom:10px;
+      color:#bdbdbd;
+      font-size:14px;
+    }
+
+    input[type="text"],
+    input[type="file"]{
+      width:100%;
+      padding:14px;
+      border:none;
+      border-radius:14px;
+      background:#141414;
+      color:white;
+    }
+
+    button{
+      width:100%;
+      padding:16px;
+      border:none;
+      border-radius:16px;
+      background:white;
+      color:black;
+      font-weight:600;
+      cursor:pointer;
+      transition:0.25s;
+      font-size:16px;
+    }
+
+    button:hover{
+      transform:translateY(-2px);
+    }
+
+    .canvas-wrap{
+      background:#050505;
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:24px;
+      padding:20px;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    canvas{
+      border-radius:18px;
+      overflow:hidden;
+    }
+
+    .hint{
+      margin-top:18px;
+      color:#888;
+      font-size:14px;
+      line-height:1.6;
+    }
+
+    @media(max-width:1000px){
+
+      .container{
+        grid-template-columns:1fr;
+      }
+
+      body{
+        padding:20px;
+      }
+
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="container"> 
+
+    <div class="panel">
+
+      <h2>Reform UK Meme Generator</h2>
+
+      <div class="group">
+        <label>Upload Face Image</label>
+        <input type="file" id="upload" accept="image/*">
+      </div>
+
+      <div class="group">
+        <label>Reform Text</label>
+        <input type="text" id="topText" placeholder="Enter top text">
+      </div>
+
+     <div class="group">
+        <label>'MP for' Text</label>
+        <input type="text" id="handText" placeholder="Enter handwritten text">
+     </div>
+
+     <div class="group">
+        <label>... NEEDS REFORM</label>
+        <input type="text" id="bottomCenterText" placeholder="Enter bottom center text">
+     </div>
+
+      <button id="downloadBtn">
+        Download Meme
+      </button>
+      
+
+      <div class="hint">
+        Badly Created by ChatGPT
+      </div>
+
+      <br>
+
+      <div class="Example">
+        <label>Example:</label>
+     </div>
+
+
+        <div class="example-image">
+
+        <img src="images/example.png" alt="Example meme">
+
+        </div>
+
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas id="canvas" width="900" height="1200"></canvas>
+    </div>
+
+  </div>
+
+  <script>
+
+    const canvas = new fabric.Canvas('canvas');
+
+    fabric.Image.fromURL('images/template.png', function(img){
+
+      img.selectable = false;
+      img.evented = false;
+
+      img.scaleToWidth(canvas.width);
+      img.scaleToHeight(canvas.height);
+
+      canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+
+    });
+
+fabric.Image.fromURL('images/REFORM.png', function(reformImg){
+
+  reformImg.scaleToWidth(270);
+
+  const topText = new fabric.Textbox('', {
+
+    fontSize: 62,
+    fill: 'white',
+
+    fontFamily: 'GothamBook',
+
+    textAlign: 'left',
+
+    selectable:false,
+    evented:false
+
+  });
+
+  function updateHeader(text){
+
+    topText.text = text.toUpperCase();
+
+    const spacing = 4;
+
+    const imageWidth =
+      reformImg.getScaledWidth();
+
+    const textWidth =
+      topText.calcTextWidth();
+
+    const totalWidth =
+      imageWidth + spacing + textWidth;
+
+    const startX =
+      (canvas.width / 2) - (totalWidth / 2) - 8;
+
+    reformImg.set({
+      left:startX,
+      top:52,
+      originX:'left',
+      originY:'top',
+      selectable:false,
+      evented:false
+    });
+
+    topText.set({
+      left:startX + imageWidth + spacing,
+      top:40,
+      width:textWidth + 10
+    });
+
+    canvas.renderAll();
+
+  }
+
+  canvas.add(reformImg);
+  canvas.add(topText);
+
+  updateHeader('');
+
+  document
+    .getElementById('topText')
+    .addEventListener('input', (e) => {
+
+      updateHeader(e.target.value);
+
+    });
+
+    });
+
+    document.getElementById('handText').addEventListener('input', (e) => {
+
+        customHandText.text = e.target.value;
+
+        canvas.renderAll();
+
+    });
+
+    document.getElementById('bottomCenterText').addEventListener('input', (e) => {
+
+    bottomCenterText.text = e.target.value.toUpperCase();
+
+    canvas.renderAll();
+
+    });
+
+    document.getElementById('upload').addEventListener('change', function(e){
+
+      const file = e.target.files[0];
+
+      if(!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = function(f){
+
+        fabric.Image.fromURL(f.target.result, function(img){
+
+          img.set({
+            left: 320,
+            top: 220,
+            cornerColor: 'white',
+            cornerStyle: 'circle',
+            transparentCorners: false,
+            borderColor: 'white'
+          });
+
+          img.scaleToWidth(220);
+
+          canvas.add(img);
+          canvas.setActiveObject(img);
+
+        });
+
+      }
+
+      reader.readAsDataURL(file);
+
+    });
+
+
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+
+      const dataURL = canvas.toDataURL({
+        format: 'png',
+        quality: 1
+      });
+
+      const link = document.createElement('a');
+
+      link.href = dataURL;
+      link.download = 'reform-meme.png';
+
+      link.click();
+
+    });
+
+    const customHandText = new fabric.Textbox('', {
+
+        left: 150,
+        top: 940,
+
+        width: 600,
+
+        fontSize: 54,
+
+        fill: 'white',
+
+        fontFamily: 'NothingYouCouldDo',
+
+        textAlign: 'left',
+
+        selectable:false,
+        evented:false
+
+    });
+
+    const bottomCenterText = new fabric.Textbox('', {
+
+        left: 450,
+        top: 1135,
+
+        originX:'center',
+
+        width: 760,
+
+        fontSize: 52,
+
+        fill: 'white',
+
+        fontFamily: 'GothamBlack',
+
+        textAlign: 'center',
+
+        selectable:false,
+        evented:false
+
+    });
+
+    canvas.add(bottomCenterText);
+
+    canvas.add(customHandText);
+
+  </script>
+
+</body>
+</html>
