@@ -1,43 +1,250 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>My Business</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>Hello.</title>
 
   <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
     body{
-      font-family:Arial;
-      text-align:center;
-      padding:80px;
-      background:#111;
+      height:100vh;
+      overflow:hidden;
+      background:#050505;
+      color:white;
+      font-family:Inter, Arial, sans-serif;
+      position:relative;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .background{
+      position:absolute;
+      inset:0;
+      overflow:hidden;
+    }
+
+    .blob{
+      position:absolute;
+      width:700px;
+      height:700px;
+      border-radius:50%;
+      filter:blur(140px);
+      opacity:0.75;
+    }
+
+    .blob1{
+      background:#5b4dff;
+      top:-250px;
+      left:-180px;
+    }
+
+    .blob2{
+      background:#ff5f2e;
+      bottom:-250px;
+      right:-180px;
+    }
+
+    .noise{
+      position:absolute;
+      inset:0;
+      opacity:0.04;
+      background-image:url("https://grainy-gradients.vercel.app/noise.svg");
+    }
+
+    nav{
+      position:absolute;
+      top:30px;
+      left:40px;
+      right:40px;
+
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+
+      z-index:10;
+    }
+
+    .logo{
+      font-size:32px;
+      font-weight:700;
+      letter-spacing:-1px;
+    }
+
+    .dot{
+      color:#7a5cff;
+    }
+
+    .links{
+      display:flex;
+      gap:40px;
+    }
+
+    .links a{
+      color:#cfcfcf;
+      text-decoration:none;
+      transition:0.3s;
+      font-size:15px;
+    }
+
+    .links a:hover{
       color:white;
     }
 
+    .hero{
+      position:relative;
+      z-index:5;
+
+      text-align:center;
+
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+    }
+
     h1{
-      font-size:60px;
+      font-size:clamp(5rem, 16vw, 11rem);
+      line-height:0.9;
+      letter-spacing:-6px;
+      font-weight:700;
     }
 
     p{
-      font-size:22px;
-      color:#bbb;
+      margin-top:24px;
+      color:#bdbdbd;
+      font-size:1.3rem;
+      max-width:700px;
     }
 
-    button{
-      padding:15px 30px;
-      border:none;
-      border-radius:10px;
-      font-size:18px;
-      cursor:pointer;
+    .arrow{
+      margin-top:50px;
+      font-size:2rem;
+      color:#cfcfcf;
+      animation:bounce 2s infinite;
     }
+
+    .socials{
+      position:absolute;
+      bottom:30px;
+      left:40px;
+
+      display:flex;
+      gap:24px;
+
+      z-index:10;
+    }
+
+    .socials a{
+      color:white;
+      text-decoration:none;
+      opacity:0.7;
+      transition:0.3s;
+      font-size:14px;
+    }
+
+    .socials a:hover{
+      opacity:1;
+    }
+
+    .footer{
+      position:absolute;
+      bottom:30px;
+      right:40px;
+
+      color:#8f8f8f;
+      z-index:10;
+      font-size:14px;
+    }
+
+    @keyframes bounce{
+
+      0%,100%{
+        transform:translateY(0);
+      }
+
+      50%{
+        transform:translateY(10px);
+      }
+
+    }
+
+    @media(max-width:768px){
+
+      .links{
+        gap:20px;
+      }
+
+      h1{
+        font-size:5rem;
+      }
+
+      p{
+        font-size:1rem;
+      }
+
+    }
+
   </style>
 </head>
 
 <body>
 
-  <h1>My Website</h1>
+  <div class="background">
 
-  <p>Built with GitHub Pages</p>
+    <div class="blob blob1"></div>
+    <div class="blob blob2"></div>
 
-  <button>Contact Me</button>
+    <div class="noise"></div>
+
+  </div>
+
+  <nav>
+
+    <div class="logo">
+      AH<span class="dot">.</span>
+    </div>
+
+    <div class="links">
+      <a href="#">About</a>
+      <a href="#">Work</a>
+      <a href="#">Contact</a>
+    </div>
+
+  </nav>
+
+  <section class="hero">
+
+    <h1>Hello.</h1>
+
+    <p>
+      I'm Ammaar Hayat — welcome to my space.
+    </p>
+
+    <div class="arrow">
+      ↓
+    </div>
+
+  </section>
+
+  <div class="socials">
+    <a href="#">GitHub</a>
+    <a href="#">LinkedIn</a>
+    <a href="#">Instagram</a>
+  </div>
+
+  <div class="footer">
+    © 2026 Ammaar Hayat
+  </div>
 
 </body>
 </html>
