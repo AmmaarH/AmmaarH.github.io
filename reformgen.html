@@ -169,9 +169,15 @@
       </div>
 
      <div class="group">
-        <label>'MP for' Text</label>
+        <label>Name</label>
         <input type="text" id="handText" placeholder="Enter handwritten text">
      </div>
+
+     <div class="group">
+        <label>'MP for' Text</label>
+        <input type="text" id="MPfor" placeholder="Enter place of election">
+     </div>
+
 
      <div class="group">
         <label>... NEEDS REFORM</label>
@@ -302,6 +308,14 @@ fabric.Image.fromURL('images/REFORM.png', function(reformImg){
 
     });
 
+    document.getElementById('MPfor').addEventListener('input', (e) => {
+
+        MPfor.text = e.target.value;
+
+        canvas.renderAll();
+
+    });
+
     document.getElementById('bottomCenterText').addEventListener('input', (e) => {
 
     bottomCenterText.text = e.target.value.toUpperCase();
@@ -381,6 +395,26 @@ fabric.Image.fromURL('images/REFORM.png', function(reformImg){
 
     });
 
+    const MPfor = new fabric.Textbox('', {
+
+        left: 150,
+        top: 1000,
+
+        width: 600,
+
+        fontSize: 46,
+
+        fill: 'white',
+
+        fontFamily: 'GothamBook',
+
+        textAlign: 'left',
+
+        selectable:false,
+        evented:false
+
+    });
+
     const bottomCenterText = new fabric.Textbox('', {
 
         left: 450,
@@ -406,6 +440,8 @@ fabric.Image.fromURL('images/REFORM.png', function(reformImg){
     canvas.add(bottomCenterText);
 
     canvas.add(customHandText);
+
+    canvas.add(MPfor);
 
   </script>
 
