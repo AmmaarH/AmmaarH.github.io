@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typing Test</title>
+
+<style>
+body{
+    background:#1e1f22;
+    color:#d1d0c5;
+    font-family:Arial,sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    margin:0;
+}
+
+.container{
+    width:900px;
+}
+
+h1{
+    color:#e2b714;
+}
+
+#timer{
+    color:#e2b714;
+    font-size:28px;
+    margin-bottom:20px;
+}
+
+#text{
+    font-size:32px;
+    line-height:1.8;
+    word-wrap:break-word;
+    user-select:none;
+}
+
+.correct{
+    color:#ffffff;
+}
+
+.incorrect{
+    color:#ff5f56;
+}
+
+.current{
+    background:#e2b714;
+    color:#1e1f22;
+    border-radius:3px;
+}
+
+#input{
+    position:absolute;
+    opacity:0;
+    pointer-events:none;
+}
+
+#results{
+    margin-top:30px;
+    font-size:24px;
+    display:none;
+}
+
+button{
+    margin-top:20px;
+    padding:10px 20px;
+    font-size:18px;
+    background:#e2b714;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Typing Test</h1>
+    <div id="timer">15</div>
+
+    <div id="text"></div>
+
+    <input id="input" autofocus>
+
+    <div id="results">
+        <p>WPM: <span id="wpm"></span></p>
+        <p>Accuracy: <span id="accuracy"></span>%</p>
+        <button onclick="startTest()">Restart</button>
+    </div>
+</div>
+
+<script>
+const words = [
+"apple","banana","orange","keyboard","computer","window",
+"school","planet","system","network","server","python",
+"javascript","github","monitor","science","physics",
+"mathematics","engine","design","future","energy",
+"camera","project","random","coding","dragon",
+"galaxy","village","mountain","river","forest"
+];
+
+const textDiv = document.getElementById("text");
+const input = document.getElementById("input");
+const timerDiv = document.getElementById("timer");
+
+let targetText = "";
+let timeLeft = 15;
+let timer;
+let started = false;
+
+function generateWords(count=60){
+    let result=[];
+    for(let i=0;i<count;i++){
+        result.push(words[Math.floor(Math.random()*words.length)]);
+    }
+    return result.join(" ");
+}
+
+function render(){
+    const typed = input.value;
+    let html="";
+
+    for(let i=0;i<targetText.length;i++){
+
+        let cls="";
+
+        if(i < typed.length){
+            cls = typed[i] === targetText[i]
+                ? "correct"
+                : "incorrect";
+        }
+
+        if(i === typed.length){
+            cls += " current";
+        }
+
+        html += `<span class="${cls}">${targetText[i]}</span>`;
+    }
+
+    textDiv.innerHTML = html;
+}
+
+function finishTest(){
+
+    clearInterval(timer);
+
+    let correct = 0;
+
+    for(let i=0;i<input.value.length;i++){
+        if(input.value[i] === targetText[i]){
+            correct++;
+        }
+    }
+
+    const wordsTyped = correct / 5;
+    const wpm = Math.round(wordsTyped * 4);
+
+    const accuracy = input.value.length
+        ? Math.round((correct / input.value.length) * 100)
+        : 0;
+
+    document.getElementById("wpm").textContent = wpm;
+    document.getElementById("accuracy").textContent = accuracy;
+
+    document.getElementById("results").style.display = "block";
+
+    input.disabled = true;
+}
+
+function startTest(){
+
+    clearInterval(timer);
+
+    targetText = generateWords();
+
+    input.value = "";
+    input.disabled = false;
+
+    started = false;
+    timeLeft = 15;
+
+    timerDiv.textContent = timeLeft;
+    document.getElementById("results").style.display = "none";
+
+    render();
+
+    input.focus();
+}
+
+input.addEventListener("input", () => {
+
+    if(!started){
+        started = true;
+
+        timer = setInterval(() => {
+            timeLeft--;
+            timerDiv.textContent = timeLeft;
+
+            if(timeLeft <= 0){
+                finishTest();
+            }
+        },1000);
+    }
+
+    render();
+});
+
+document.addEventListener("click",()=>input.focus());
+
+startTest();
+</script>
+
+</body>
+</html>
