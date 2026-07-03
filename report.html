@@ -8,22 +8,32 @@
     <style>
         body {
             margin: 0;
+            font-family: sans-serif;
         }
 
-        .pdf {
+        a.button {
+            display: block;
+            padding: 16px;
+            text-align: center;
+            background: #000;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        iframe {
             width: 100%;
-            height: 100vh;
+            height: calc(100vh - 56px);
+            border: none;
         }
     </style>
 </head>
 <body>
 
-    <object class="pdf" data="documents/report.pdf" type="application/pdf">
-        <p>
-            PDF cannot be displayed.
-            <a href="documents/report.pdf">Download PDF</a>
-        </p>
-    </object>
+    <a class="button" href="documents/report.pdf" target="_blank">
+        Open Full Report
+    </a>
+
+    <iframe src="documents/report.pdf"></iframe>
 
 </body>
 </html>
