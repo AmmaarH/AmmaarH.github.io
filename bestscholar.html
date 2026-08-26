@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Hadith Scholar Search</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at top, #173a28 0%, #07120d 45%, #030705 100%);
+    color: #edf7f0;
+    font-family: Arial, Helvetica, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 760px;
+    background: rgba(9, 23, 16, 0.96);
+    border: 1px solid #284a36;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 25px 80px rgba(0,0,0,.55);
+}
+
+h1 {
+    margin: 0 0 8px;
+    font-size: 25px;
+}
+
+.subtitle {
+    color: #91aa9a;
+    font-size: 14px;
+    margin-bottom: 25px;
+}
+
+.search-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+input {
+    flex: 1;
+    padding: 15px 17px;
+    border-radius: 10px;
+    border: 1px solid #315640;
+    background: #06100b;
+    color: white;
+    font-size: 15px;
+    outline: none;
+
+    /* Prevent text selection/editing */
+    user-select: none;
+    caret-color: transparent;
+    cursor: default;
+}
+
+button {
+    padding: 0 20px;
+    border-radius: 10px;
+    border: 1px solid #52765d;
+    background: #173b26;
+    color: #e8f5ec;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    background: #205234;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.indicator {
+    width: 10px;
+    height: 10px;
+    background: #8fd1a4;
+    border-radius: 50%;
+    box-shadow: 0 0 14px #8fd1a4;
+    animation: pulse 1s infinite;
+}
+
+.indicator.done {
+    background: #d8b86b;
+    box-shadow: 0 0 14px #d8b86b;
+    animation: none;
+}
+
+@keyframes pulse {
+    50% {
+        opacity: .3;
+        transform: scale(.7);
+    }
+}
+
+.query {
+    background: #050c08;
+    border: 1px solid #1d3828;
+    border-radius: 12px;
+    padding: 18px;
+    font-family: monospace;
+    color: #b9d9c3;
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.cursor {
+    display: inline-block;
+    width: 7px;
+    height: 17px;
+    margin-left: 3px;
+    background: #8fd1a4;
+    animation: blink .8s infinite;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+.progress {
+    height: 6px;
+    background: #17271d;
+    border-radius: 20px;
+    margin-top: 18px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    width: 0%;
+    height: 100%;
+    background: #8fcda2;
+    transition: width .6s ease;
+}
+
+.result {
+    display: none;
+    margin-top: 25px;
+    padding: 25px;
+    border-radius: 14px;
+    border: 1px solid #635128;
+    background: linear-gradient(135deg, #17180e, #101b14);
+}
+
+.result.show {
+    display: block;
+    animation: appear .7s ease;
+}
+
+@keyframes appear {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.result-label {
+    color: #d8b86b;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.scholar {
+    font-size: 28px;
+    font-weight: bold;
+    margin-top: 7px;
+}
+
+.disclaimer {
+    color: #819688;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-top: 10px;
+}
+
+.history {
+    margin-top: 20px;
+    max-height: 170px;
+    overflow-y: auto;
+    border-top: 1px solid #1d3828;
+}
+
+.history-item {
+    padding: 9px 0;
+    border-bottom: 1px solid #14271c;
+    color: #789181;
+    font-family: monospace;
+    font-size: 12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Hadith Scholar Search</h1>
+
+    <div class="subtitle">
+        Historical search simulation across hadith collections and periods
+    </div>
+
+    <div class="search-box">
+
+        <!-- Read-only search bar -->
+        <input
+            id="searchInput"
+            value="Who is the best scholar of all time?"
+            readonly
+            tabindex="-1"
+            aria-label="Search query"
+        >
+
+        <button onclick="startSearch()">
+            Search
+        </button>
+
+    </div>
+
+    <div class="status">
+
+        <div class="indicator" id="indicator"></div>
+
+        <strong id="statusText">
+            Ready
+        </strong>
+
+    </div>
+
+    <div class="query">
+
+        <span id="queryText">
+            Waiting for search...
+        </span>
+
+        <span class="cursor"></span>
+
+    </div>
+
+    <div class="progress">
+
+        <div
+            class="progress-bar"
+            id="progressBar">
+        </div>
+
+    </div>
+
+    <div
+        class="history"
+        id="history">
+    </div>
+
+    <div
+        class="result"
+        id="result">
+
+        <div class="result-label">
+            Final Selected Scholar
+        </div>
+
+        <div class="scholar">
+            Maulana Ilyas Qadri
+        </div>
+
+        <div class="disclaimer">
+            This is a visual demonstration. The result is satire and should not be taken serious.
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const searches = [
+
+    "Searching hadith selections...",
+
+    "Scholars mentioned in Sahih al-Bukhari...",
+
+    "Scholars mentioned in Sahih Muslim...",
+
+    "Scholars mentioned in Sunan Abu Dawud...",
+
+    "Scholars mentioned in Jami' al-Tirmidhi...",
+
+    "Scholars mentioned in Sunan al-Nasa'i...",
+
+    "Scholars mentioned in Sunan Ibn Majah...",
+
+    "Scholars mentioned in Muwatta Imam Malik...",
+
+    "Scholars mentioned in Musnad Ahmad...",
+
+    "Scholars from 100–200 AH...",
+
+    "Scholars from 200–300 AH...",
+
+    "Scholars from 300–400 AH...",
+
+    "Scholars from 400–500 AH...",
+
+    "Scholars from 500–600 AH...",
+
+    "Scholars from 600–700 AH...",
+
+    "Scholars from 700–800 AH...",
+
+    "Scholars from 800–900 AH...",
+
+    "Scholars from 900–1000 AH...",
+
+    "Scholars from 1000–1100 AH...",
+
+    "Scholars from 1100–1200 AH...",
+
+    "Scholars from 1200–1300 AH...",
+
+    "Scholars from 1300–1400 AH...",
+
+    "Scholars from 1400 AH to modern day...",
+
+    "Modern-day Islamic scholars..."
+
+];
+
+
+let currentIndex = 0;
+let timer = null;
+
+
+function addHistory(text) {
+
+    const history =
+        document.getElementById("history");
+
+    const item =
+        document.createElement("div");
+
+    item.className =
+        "history-item";
+
+    item.textContent =
+        "✓ " + text;
+
+    history.appendChild(item);
+
+    history.scrollTop =
+        history.scrollHeight;
+}
+
+
+function startSearch() {
+
+    clearTimeout(timer);
+
+    currentIndex = 0;
+
+    const result =
+        document.getElementById("result");
+
+    const history =
+        document.getElementById("history");
+
+    const indicator =
+        document.getElementById("indicator");
+
+    const statusText =
+        document.getElementById("statusText");
+
+    const progressBar =
+        document.getElementById("progressBar");
+
+    const queryText =
+        document.getElementById("queryText");
+
+
+    result.classList.remove("show");
+
+    history.innerHTML = "";
+
+    indicator.classList.remove("done");
+
+    progressBar.style.width = "0%";
+
+    statusText.textContent =
+        "Searching...";
+
+    queryText.textContent =
+        "Initializing search...";
+
+    runNext();
+}
+
+
+function runNext() {
+
+    const queryText =
+        document.getElementById("queryText");
+
+    const statusText =
+        document.getElementById("statusText");
+
+    const progressBar =
+        document.getElementById("progressBar");
+
+
+    if (currentIndex >= searches.length) {
+
+        finishSearch();
+
+        return;
+    }
+
+
+    const search =
+        searches[currentIndex];
+
+
+    queryText.textContent =
+        search;
+
+
+    statusText.textContent =
+        "Searching " +
+        (currentIndex + 1) +
+        " of " +
+        searches.length;
+
+
+    const progress =
+        ((currentIndex + 1) /
+        searches.length) * 100;
+
+
+    progressBar.style.width =
+        progress + "%";
+
+
+    addHistory(search);
+
+
+    currentIndex++;
+
+
+    timer = setTimeout(
+        runNext,
+        950
+    );
+}
+
+
+function finishSearch() {
+
+    const statusText =
+        document.getElementById("statusText");
+
+    const queryText =
+        document.getElementById("queryText");
+
+    const indicator =
+        document.getElementById("indicator");
+
+    const result =
+        document.getElementById("result");
+
+
+    statusText.textContent =
+        "Search complete";
+
+
+    queryText.textContent =
+        "Cross-referencing historical and modern scholars...";
+
+
+    indicator.classList.add("done");
+
+
+    setTimeout(() => {
+
+        queryText.textContent =
+            "Final result found.";
+
+        result.classList.add("show");
+
+    }, 1000);
+}
+
+</script>
+
+</body>
+</html>
