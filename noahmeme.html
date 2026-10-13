@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -278,6 +277,7 @@ function loadImage(file) {
 
 
 // Draw both layers at the required output resolution.
+
 function render() {
     if (!foreground.complete || !foreground.naturalWidth) {
         return;
@@ -288,6 +288,7 @@ function render() {
 
     ctx.clearRect(0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
 
+    // Draw the background first.
     if (background) {
         const baseScale = Math.max(
             OUTPUT_WIDTH / background.naturalWidth,
@@ -305,55 +306,17 @@ function render() {
         ctx.drawImage(background, x, y, width, height);
     }
 
-    // Find the non-transparent bounds of the foreground.
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = foreground.naturalWidth;
-    tempCanvas.height = foreground.naturalHeight;
-
-    const tempCtx = tempCanvas.getContext("2d", {
-        willReadFrequently: true
-    });
-
-    tempCtx.drawImage(foreground, 0, 0);
-
-    const imageData = tempCtx.getImageData(
+    // Draw the foreground at its original dimensions.
+    // No cropping, resizing, or repositioning.
+    ctx.drawImage(
+        foreground,
         0, 0,
-        tempCanvas.width,
-        tempCanvas.height
+        OUTPUT_WIDTH, OUTPUT_HEIGHT
     );
-
-    const pixels = imageData.data;
-    let minX = tempCanvas.width;
-    let minY = tempCanvas.height;
-    let maxX = -1;
-    let maxY = -1;
-
-    for (let y = 0; y < tempCanvas.height; y++) {
-        for (let x = 0; x < tempCanvas.width; x++) {
-            const alpha = pixels[(y * tempCanvas.width + x) * 4 + 3];
-
-            if (alpha > 0) {
-                minX = Math.min(minX, x);
-                minY = Math.min(minY, y);
-                maxX = Math.max(maxX, x);
-                maxY = Math.max(maxY, y);
-            }
-        }
-    }
-
-    if (maxX >= minX && maxY >= minY) {
-        const cropWidth = maxX - minX + 1;
-        const cropHeight = maxY - minY + 1;
-
-        ctx.drawImage(
-            foreground,
-            minX, minY, cropWidth, cropHeight,
-            0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT
-        );
-    }
 
     downloadButton.disabled = false;
 }
+
 
 
 // Background upload.
@@ -546,4 +509,3 @@ downloadButton.addEventListener("click", () => {
 </script>
 </body>
 </html>
-```
