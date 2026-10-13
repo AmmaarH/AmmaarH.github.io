@@ -1,0 +1,549 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Noah Image Composer</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #0b0d12;
+    color: #e5e7eb;
+    font-family: system-ui, sans-serif;
+}
+
+main {
+    max-width: 1200px;
+    margin: auto;
+    padding: 28px 18px;
+}
+
+h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+}
+
+.intro {
+    color: #9ca3af;
+    margin-bottom: 24px;
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: 270px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.panel, .preview {
+    background: #151821;
+    border: 1px solid #292e3b;
+    border-radius: 14px;
+    padding: 18px;
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+input[type="file"] {
+    width: 100%;
+    color: #cbd5e1;
+    font-size: 13px;
+}
+
+button {
+    border: none;
+    border-radius: 8px;
+    padding: 11px 14px;
+    cursor: pointer;
+    font-weight: 600;
+    background: #292e3b;
+    color: #e5e7eb;
+}
+
+button:hover {
+    background: #383f50;
+}
+
+button.primary {
+    background: #6366f1;
+    color: white;
+}
+
+button.primary:hover {
+    background: #4f46e5;
+}
+
+button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-top: 20px;
+}
+
+.tip {
+    background: #202431;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #b9c1d0;
+    margin-top: 20px;
+    line-height: 1.6;
+}
+
+.canvas-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+    max-height: 75vh;
+    overflow: auto;
+    padding: 12px;
+    border-radius: 10px;
+    background-color: #202431;
+    background-image:
+        linear-gradient(45deg, #292e3b 25%, transparent 25%),
+        linear-gradient(-45deg, #292e3b 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #292e3b 75%),
+        linear-gradient(-45deg, transparent 75%, #292e3b 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+    touch-action: none;
+    user-select: none;
+}
+
+canvas {
+    display: block;
+    max-width: 100%;
+    max-height: 68vh;
+    width: auto;
+    height: auto;
+    cursor: grab;
+    touch-action: none;
+}
+
+canvas.dragging {
+    cursor: grabbing;
+}
+
+.status {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-top: 12px;
+    line-height: 1.5;
+}
+
+@media (max-width: 750px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+
+    main {
+        padding: 18px 12px;
+    }
+
+    .canvas-wrap {
+        min-height: 220px;
+        max-height: 65vh;
+    }
+
+    canvas {
+        max-height: 60vh;
+    }
+}
+</style>
+</head>
+
+<body>
+<main>
+    <h1>Noah Image Composer</h1>
+
+    <p class="intro">
+        Upload a background and position it behind the transparent areas.
+    </p>
+
+    <div class="layout">
+        <section class="panel">
+            <label for="background">Background image</label>
+
+            <input
+                id="background"
+                type="file"
+                accept="image/*"
+            >
+
+            <div class="buttons">
+                <button id="reset">Reset position</button>
+
+                <button id="download" class="primary" disabled>
+                    Export PNG
+                </button>
+            </div>
+
+            <div class="tip">
+                <strong>Controls</strong><br>
+                Mouse: click and drag to move the background.<br>
+                Mouse wheel: zoom in or out.<br>
+                Touchscreen: drag with one finger and pinch with two fingers.<br><br>
+                Export resolution: <strong>1086 × 1180 pixels</strong>.
+            </div>
+        </section>
+
+        <section class="preview">
+            <h3 style="margin-top:0">Preview</h3>
+
+            <div class="canvas-wrap">
+                <canvas id="canvas" width="1086" height="1180"></canvas>
+            </div>
+
+            <div class="status" id="status">
+                Loading foreground image...
+            </div>
+        </section>
+    </div>
+</main>
+
+<script>
+const OUTPUT_WIDTH = 1086;
+const OUTPUT_HEIGHT = 1180;
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+const backgroundInput = document.getElementById("background");
+const statusText = document.getElementById("status");
+const downloadButton = document.getElementById("download");
+
+const foreground = new Image();
+
+let background = null;
+
+let scale = 1;
+let offsetX = 0;
+let offsetY = 0;
+
+let pointers = new Map();
+let dragStart = null;
+let pinchStart = null;
+
+
+// Fixed foreground image.
+foreground.onload = () => {
+    render();
+    statusText.textContent =
+        "Choose a background image to begin.";
+};
+
+foreground.onerror = () => {
+    statusText.textContent =
+        "Could not load images/noahmeme.png. Check the file path.";
+};
+
+foreground.src = "images/noahmeme.png";
+
+
+// Load the uploaded background.
+function loadImage(file) {
+    return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+
+        img.onload = () => {
+            URL.revokeObjectURL(url);
+            resolve(img);
+        };
+
+        img.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error("Could not load that image."));
+        };
+
+        img.src = url;
+    });
+}
+
+
+// Draw both layers at the required output resolution.
+function render() {
+    if (!foreground.complete || !foreground.naturalWidth) {
+        return;
+    }
+
+    canvas.width = OUTPUT_WIDTH;
+    canvas.height = OUTPUT_HEIGHT;
+
+    ctx.clearRect(0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
+
+    if (background) {
+        const baseScale = Math.max(
+            OUTPUT_WIDTH / background.naturalWidth,
+            OUTPUT_HEIGHT / background.naturalHeight
+        );
+
+        const currentScale = baseScale * scale;
+
+        const width = background.naturalWidth * currentScale;
+        const height = background.naturalHeight * currentScale;
+
+        const x = (OUTPUT_WIDTH - width) / 2 + offsetX;
+        const y = (OUTPUT_HEIGHT - height) / 2 + offsetY;
+
+        ctx.drawImage(background, x, y, width, height);
+    }
+
+    // Find the non-transparent bounds of the foreground.
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = foreground.naturalWidth;
+    tempCanvas.height = foreground.naturalHeight;
+
+    const tempCtx = tempCanvas.getContext("2d", {
+        willReadFrequently: true
+    });
+
+    tempCtx.drawImage(foreground, 0, 0);
+
+    const imageData = tempCtx.getImageData(
+        0, 0,
+        tempCanvas.width,
+        tempCanvas.height
+    );
+
+    const pixels = imageData.data;
+    let minX = tempCanvas.width;
+    let minY = tempCanvas.height;
+    let maxX = -1;
+    let maxY = -1;
+
+    for (let y = 0; y < tempCanvas.height; y++) {
+        for (let x = 0; x < tempCanvas.width; x++) {
+            const alpha = pixels[(y * tempCanvas.width + x) * 4 + 3];
+
+            if (alpha > 0) {
+                minX = Math.min(minX, x);
+                minY = Math.min(minY, y);
+                maxX = Math.max(maxX, x);
+                maxY = Math.max(maxY, y);
+            }
+        }
+    }
+
+    if (maxX >= minX && maxY >= minY) {
+        const cropWidth = maxX - minX + 1;
+        const cropHeight = maxY - minY + 1;
+
+        ctx.drawImage(
+            foreground,
+            minX, minY, cropWidth, cropHeight,
+            0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT
+        );
+    }
+
+    downloadButton.disabled = false;
+}
+
+
+// Background upload.
+backgroundInput.addEventListener("change", async () => {
+    const file = backgroundInput.files[0];
+
+    if (!file) return;
+
+    try {
+        background = await loadImage(file);
+
+        scale = 1;
+        offsetX = 0;
+        offsetY = 0;
+
+        render();
+
+        statusText.textContent =
+            "Drag to move. Scroll or pinch to zoom.";
+    } catch (error) {
+        statusText.textContent = error.message;
+    }
+});
+
+
+// Convert screen coordinates to canvas coordinates.
+function getPosition(event) {
+    const rect = canvas.getBoundingClientRect();
+
+    return {
+        x: (event.clientX - rect.left) *
+            OUTPUT_WIDTH / rect.width,
+
+        y: (event.clientY - rect.top) *
+            OUTPUT_HEIGHT / rect.height
+    };
+}
+
+function distance(a, b) {
+    return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+
+// Start dragging or pinching.
+canvas.addEventListener("pointerdown", event => {
+    if (!background) return;
+
+    event.preventDefault();
+    canvas.setPointerCapture(event.pointerId);
+    canvas.classList.add("dragging");
+
+    const position = getPosition(event);
+    pointers.set(event.pointerId, position);
+
+    if (pointers.size === 1) {
+        dragStart = {
+            pointer: position,
+            x: offsetX,
+            y: offsetY
+        };
+    }
+
+    if (pointers.size === 2) {
+        const points = [...pointers.values()];
+
+        pinchStart = {
+            distance: distance(points[0], points[1]),
+            scale: scale
+        };
+
+        dragStart = null;
+    }
+});
+
+
+// Move the background.
+canvas.addEventListener("pointermove", event => {
+    if (!pointers.has(event.pointerId)) return;
+
+    event.preventDefault();
+    pointers.set(event.pointerId, getPosition(event));
+
+    if (pointers.size === 1 && dragStart) {
+        const position = pointers.get(event.pointerId);
+
+        offsetX = dragStart.x +
+            position.x - dragStart.pointer.x;
+
+        offsetY = dragStart.y +
+            position.y - dragStart.pointer.y;
+
+        render();
+    }
+
+    // Pinch-to-zoom.
+    if (pointers.size >= 2 && pinchStart) {
+        const points = [...pointers.values()];
+        const currentDistance = distance(points[0], points[1]);
+
+        scale = Math.max(
+            0.2,
+            Math.min(
+                8,
+                pinchStart.scale *
+                currentDistance / Math.max(1, pinchStart.distance)
+            )
+        );
+
+        render();
+    }
+});
+
+
+// Finish a pointer interaction.
+function endPointer(event) {
+    pointers.delete(event.pointerId);
+
+    if (pointers.size < 2) {
+        pinchStart = null;
+    }
+
+    if (pointers.size === 1) {
+        const position = [...pointers.values()][0];
+
+        dragStart = {
+            pointer: position,
+            x: offsetX,
+            y: offsetY
+        };
+    } else {
+        dragStart = null;
+    }
+
+    if (pointers.size === 0) {
+        canvas.classList.remove("dragging");
+    }
+}
+
+canvas.addEventListener("pointerup", endPointer);
+canvas.addEventListener("pointercancel", endPointer);
+
+
+// Mouse-wheel zoom.
+canvas.addEventListener("wheel", event => {
+    if (!background) return;
+
+    event.preventDefault();
+
+    scale = Math.max(
+        0.2,
+        Math.min(
+            8,
+            scale * (event.deltaY < 0 ? 1.08 : 1 / 1.08)
+        )
+    );
+
+    render();
+}, { passive: false });
+
+
+// Reset position and zoom.
+document.getElementById("reset").addEventListener("click", () => {
+    scale = 1;
+    offsetX = 0;
+    offsetY = 0;
+
+    render();
+});
+
+
+// Export as a full-resolution 1086 × 1180 PNG.
+downloadButton.addEventListener("click", () => {
+    canvas.toBlob(blob => {
+        if (!blob) {
+            statusText.textContent =
+                "Could not export the image.";
+            return;
+        }
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "composite.png";
+        link.click();
+
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }, "image/png");
+});
+</script>
+</body>
+</html>
+```
